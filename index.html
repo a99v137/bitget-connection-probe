@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer"><title>Bitget 連線檢查 · Anubis</title><link rel="stylesheet" href="./style.css"></head><body><main>
+<p class="eyebrow">ANUBIS · CONNECTION ONLY</p><h1>先確認連線，<br>不簽署交易。</h1><p class="intro">只檢查 Bitget Wallet 注入介面、公開帳戶與 Chain ID。沒有交易、訊息簽署、代幣授權或背景執行功能。</p>
+<section aria-label="檢查結果"><dl><dt>錢包介面</dt><dd id="provider">未偵測</dd><dt>Chain ID</dt><dd id="chain">未讀取</dd><dt>第一個公開帳戶</dt><dd id="address">未讀取</dd></dl><p id="status" role="status" aria-live="polite">準備中</p></section>
+<label class="consent"><input type="checkbox" id="consent">我同意把錢包公開地址提供給這個測試頁。地址只顯示在本頁記憶體，不由此程式送到後端；網站託管商仍可看到一般網站存取資訊。</label>
+<button id="connect">請求連接 Bitget（可能彈出確認）</button><button id="read" class="secondary">檢查已授權帳戶與鏈</button><div class="row"><button id="detect" class="secondary">重新偵測介面</button><button id="clear" class="secondary">清除本頁顯示</button></div>
+<p class="warning">若出現簽署、Gas、轉帳、代幣授權或 EIP-7702 提示，請拒絕並停止。這個版本不會提出這些請求。</p><p class="note">沒有連線成功率或 iOS 實機保證。清除顯示不是撤銷錢包對網站的授權。請只從你自己核實的 HTTPS 網址開啟，不要輸入私鑰或助記詞。</p>
+</main><script type="module" src="./app.js"></script></body></html>
