@@ -1,0 +1,67 @@
+name: Fake-only off-device rehearsal
+
+on:
+
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+
+  group: fake-only-rehearsal
+
+  cancel-in-progress: false
+
+jobs:
+
+  fake-only:
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 5
+
+    steps:
+
+      - name: Wait two minutes and record fake result
+
+        shell: python
+
+        run: |
+
+          import datetime, json, os, time
+
+          def now():
+
+              return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+          started = now()
+
+          print("FAKE ONLY: waiting 120 seconds", flush=True)
+
+          deadline = time.monotonic() + 120
+
+          while time.monotonic() < deadline:
+
+              time.sleep(min(1, max(0, deadline - time.monotonic())))
+
+          result = {
+
+              "mode": "fake-only",
+
+              "payload": "DEMO-NOT-A-TRANSACTION",
+
+              "runnerStartedAtUtc": started,
+
+              "fakeCompletedAtUtc": now(),
+
+              "broadcastAllowed": False
+
+          }
+
+          output = json.dumps(result, indent=2)
+
+          print(output)
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+
+              f.write("## Fake-only result\n\n```json\n" + output + "\n```\n")
