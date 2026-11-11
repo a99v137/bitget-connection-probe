@@ -1,7 +1,7 @@
 "use strict";
 window.ANUBIS_MANUAL_POLICY = Object.freeze({
   "version": "0.1",
-  "executionEnabled": true,
+  "executionEnabled": false,
   "chainId": "6714",
   "rpcUrl": "https://rpc.anubispace.org",
   "bond": "0x11b10c9827c5b7071e96fcaa143b4e6e86b17c69",
