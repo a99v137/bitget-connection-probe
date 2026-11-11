@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://rpc.anubispace.org; img-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>Anubis 單筆領取原型 v0.1｜僅唯讀</title>
+  <link rel="stylesheet" href="trial.css">
+  <script defer src="vendor/ethers-6.15.0.umd.min.js"></script>
+  <script defer src="config.js"></script>
+  <script defer src="trial-gates.js"></script>
+  <script defer src="quote-profile.js"></script>
+  <script defer src="quote-adapter.js"></script>
+  <script defer src="trial.js"></script>
+</head>
+<body>
+<main>
+  <header><p class="badge">唯讀預檢 · v0.1 · 僅限 Bitget Wallet</p><h1>主網唯讀預檢</h1>
+    <p>尚未啟用簽署或廣播。第一版需手機保持開啟，這不是持續執行的後端。</p></header>
+  <section class="warning"><h2>操作界線</h2><p>本版只能連接並讀取 Anubis（6714）。未取得可靠即時估價前，不選定正式交易。任何錢包安全或釣魚警示都必須保留處理，不可繞過。</p>
+    <p>未來預簽資料不一定自動到期；停止或清除本機副本不會撤銷外流簽章。Bitget 可能自行廣播，仍需受控實測。提前送出可能在舊時段失敗耗費 Gas；區塊重組、手機睡眠與額度競爭都會影響結果，不能保證首區塊或成功。</p></section>
+  <section><h2>1. 公開地址與唯讀連接</h2>
+    <label for="expected">預期使用的完整公開地址</label><input id="expected" autocomplete="off" spellcheck="false" placeholder="0x…（不輸入私鑰或助記詞）">
+    <label class="consent"><input id="consent" type="checkbox">我同意將此公開地址提供給錢包與指定 Anubis RPC 作唯讀查詢。</label>
+    <button id="inspect">連接 Bitget 並執行唯讀預檢</button>
+    <button id="stop" class="secondary">緊急停止本頁</button>
+    <p id="status" role="status" aria-live="polite">頁面尚未啟動。</p>
+  </section>
+  <section><h2>2. 預檢結果</h2><pre id="summary">尚未查詢</pre><p id="quote-status">已接入反事實估值模型，但尚未核准為可信即時估價；簽署與廣播保持停用。</p>
+    <p>每個代理的額度由所有使用者共用。本頁只分析一般債券單筆 claim(uint256)，不提供存入、購幣、授權或全部領取。</p></section>
+  <section><h2>3. 主網執行尚未啟用</h2>
+    <button id="sign" disabled>簽署（停用：待具體核對及批准）</button>
+    <button id="arm" disabled>待命（停用）</button>
+    <button id="broadcast" disabled>一次廣播（停用）</button>
+    <p>此原型沒有啟用執行的 UI 開關。最多費用需包含 gas limit × 最高單價與其他適用費用上界，並不超過可靠淨估值的 10%；失敗交易仍可能耗費 Gas。</p></section>
+</main>
+</body></html>
