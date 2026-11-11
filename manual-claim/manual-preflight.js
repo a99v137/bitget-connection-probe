@@ -90,8 +90,37 @@
     need(new Set(identities).size === identities.length, 'AMBIGUOUS_ORDER_IDENTITY');
     const wanted = identities.map((s, i) => hashText(s) === P.expectedOrderIdentityCommitment ? i : -1).filter(i => i >= 0);
     need(wanted.length === 1 && wanted[0] === P.validatedOrderIndex, 'VALIDATED_ORDER_MOVED_OR_MISSING');
+    // A failed availability screen can stop early; it can never authorize a
+    // transaction. Only the existing full path below can produce an eligible card.
+    stage('QUOTA_AVAILABILITY');
+    const targetClaimable = await call(P.bond, bond, 'getClaimable', [wallet, P.validatedOrderIndex], tag);
+    const quickWindow = BigInt(reads[16]), quickCap = BigInt(reads[17]);
+    need(quickWindow > 0n && quickCap > 0n, 'TRIAL_REQUIRES_VERIFIED_QUOTA_PERIOD');
+    const quickPeriod = BigInt(source.timestamp) / quickWindow;
+    const quickUsed = BigInt(reads[18]) === quickPeriod ? BigInt(reads[19]) : 0n;
+    need(quickUsed <= quickCap, 'INVALID_QUOTA');
+    const quickRemaining = quickCap - quickUsed;
+    if (targetClaimable > quickRemaining) {
+      const finish = await Promise.all([rpc('eth_getBlockByNumber', [tag, false]), rpc('eth_getBlockByNumber', ['latest', false]),
+        walletRead('eth_chainId'), walletRead('eth_accounts'), rpc('eth_getTransactionCount', [wallet, 'latest']), rpc('eth_getTransactionCount', [wallet, 'pending'])]);
+      need(BigInt(finish[2]) === 6714n && finish[3]?.length && address(finish[3][0]) === wallet, 'FINAL_WALLET_CHANGED');
+      need(BigInt(finish[4]) === BigInt(P.expectedNonce) && BigInt(finish[5]) === BigInt(P.expectedNonce), 'FINAL_NONCE_CHANGED');
+      const validUntilMs = sourceCheck(source, finish[0], finish[1], startedWall, startedMono);
+      const periodChanged = BigInt(finish[1].timestamp) / quickWindow !== quickPeriod;
+      return Object.freeze({ wallet, transaction: null, period: quickPeriod.toString(), orderIndex: P.validatedOrderIndex,
+        orderIdentity: identities[P.validatedOrderIndex], claimableRaw: targetClaimable.toString(), minimumNetRaw: '0',
+        maxFeeRaw: (BigInt(P.gasLimit) * BigInt(P.maxGasPrice) + BigInt(P.claimOtherApplicableFeeCapRaw)).toString(),
+        sourceBlock: Object.freeze({ number: source.number, hash: source.hash, timestamp: source.timestamp }), validUntilMs,
+        eligible: false, blockers: Object.freeze([periodChanged ? 'PERIOD_CHANGED_PREPARE_NEW_CARD' : 'GLOBAL_QUOTA_INSUFFICIENT']),
+        checks: Object.freeze({ runtimePins: Object.keys(F.runtime_sha256_pins).length, implementationPins: Object.keys(F.eip1967_slot_pins).length,
+          quotaRemainingRaw: quickRemaining.toString(), quotaWindowSeconds: quickWindow.toString(),
+          nextQuotaPeriodTimestamp: ((quickPeriod + 1n) * quickWindow).toString(),
+          pricingSkipped: true, pricingSkippedReason: 'INSUFFICIENT_QUOTA_SCREEN', quotaSnapshotOnly: true,
+          feeGateEvaluated: false, knownMaximumFeeWithinTenPercent: null, actualClaimCallPassed: null,
+          originalEOA: true, fixedNonce: P.expectedNonce, actualSwapRequested: false }) });
+    }
     stage('REWARD_NET_MODEL');
-    const claimables = await Promise.all(records.map((_, i) => call(P.bond, bond, 'getClaimable', [wallet, i], tag)));
+    const claimables = await Promise.all(records.map((_, i) => i === P.validatedOrderIndex ? targetClaimable : call(P.bond, bond, 'getClaimable', [wallet, i], tag)));
     async function quote(index, minOut = 0n) {
       need(reads[11] >= claimables[index], 'MODEL_EXISTING_ALLOWANCE_INSUFFICIENT');
       const overrides = { [wallet]: { code: F.helper_runtime }, [P.bond]: { stateDiff: { ['0x' + '0'.repeat(62) + 'ae']: '0x' + '0'.repeat(64) } } };

@@ -2,28 +2,32 @@
 <html lang="zh-Hant"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://rpc.anubispace.org; img-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Anubis 單次手動領取試驗 v0.1.1</title><link rel="stylesheet" href="manual.css">
+<title>Anubis 單次手動領取試驗 v0.2</title><link rel="stylesheet" href="manual.css">
 <script defer src="vendor/ethers-6.15.0.umd.min.js"></script><script defer src="config.js"></script><script defer src="quote-profile.js"></script>
-<script defer src="manual-preflight.js?v=0.1.1"></script><script defer src="controller.js?v=0.1.1"></script><script defer src="manual.js?v=0.1.1"></script>
+<script defer src="read-rpc.js?v=0.2"></script><script defer src="manual-preflight.js?v=0.2"></script><script defer src="controller.js?v=0.2"></script><script defer src="manual.js?v=0.2"></script>
 </head><body><main>
-<header><p class="badge">v0.1.1 · 單次手動試驗 · 僅限 Bitget Wallet</p><h1>簽署並送出一筆 LGNS 領取</h1>
+<header><p class="badge">v0.2 · 單次手動試驗 · 僅限 Bitget Wallet</p><h1>簽署並送出一筆 LGNS 領取</h1>
 <p>這是獨立的一次手動交易試驗，不是預簽保存或自動後端。手機與頁面需保持開啟；沒有整點觸發、背景排程或自動重試。</p></header>
 <section class="warning"><h2>開始前</h2><p>只有核對卡、當前額度與最高費用不超過可靠淨估值10%的檢查都通過，才可請求錢包。領取函式為一般債券的單筆 claim，不買幣、不存入、不授權、不自動出售。</p>
 <p>按下「請 Bitget 簽署並送出一次」後，錢包可能簽署並立即廣播。失敗交易也可能耗 Gas；停止本頁不能撤回錢包請求或已送交易。若 Bitget 出現釣魚／安全警示，請保留警示並停止，不要繞過。</p>
 <p>錢包若修改 gas limit、單價、nonce 或其他欄位，請在最後確認畫面核對；最高費用超過核對卡就必須取消。事後查交易只能審計，不能追回已花費用。</p></section>
-<section><h2>1. 唯讀預檢與具體核對卡</h2><label for="wallet">本次指定的完整公開錢包地址</label>
+<section><h2>1. 確認 Anubis 網路</h2><p>這兩個按鈕只請求網路設定，不會自動連接、預檢、簽署或送出；已有交易請求紀錄時停用。</p>
+<button id="switch-network" class="network">切換至 Anubis</button><button id="add-network" class="network" hidden disabled>加入 Anubis</button>
+<p id="network-status" role="status">目標為 Anubis 6714。只有錢包回覆4902才會顯示加入按鈕。</p></section>
+<section><h2>2. 唯讀預檢與具體核對卡</h2><label for="wallet">本次指定的完整公開錢包地址</label>
 <input id="wallet" autocomplete="off" spellcheck="false" placeholder="0x…（不輸入私鑰或助記詞）">
 <label class="check"><input id="read-consent" type="checkbox">我同意將此公開地址提供給 Bitget 與指定 Anubis RPC 做唯讀檢查。</label>
 <button id="prepare">連接 Bitget 並準備核對卡（唯讀）</button>
+<p>先做額度快篩；額度不足就略過耗時估價。只有全部檢查通過才會提供可批准核對卡。</p>
 <p id="status" role="status" aria-live="polite">尚未載入。</p><p id="mode">主網簽送狀態尚未核對。</p>
 <p id="brief"></p><pre id="review">尚未準備核對卡。</pre><div id="blockers" role="status"></div></section>
-<section><h2>2. 明確請求一次簽署並送出</h2>
+<section><h2>3. 明確請求一次簽署並送出</h2>
 <label class="check"><input id="send-consent" type="checkbox" disabled>我已核對上方地址、鏈、函式、訂單、金額、nonce與最高費用；我明確同意請 Bitget 簽署並送出這一筆主網領取，並會核對錢包最後確認畫面。</label>
 <button id="send" disabled>重核後請 Bitget 簽署並送出一次</button><button id="stop" class="stop">停止本頁新操作</button>
 <p>核對卡的交易參數與最低估值批准最多保留5分鐘；原報價來源只作歷史引用。交給錢包前一定再用最新30秒內資料完整重核，交易內容改變或最低估值降低就停止，不會自動套用新參數。</p>
 <p>交給錢包後，本頁無法阻止錢包延後廣播：請依核對卡新增的「最新錢包確認期限」核對。最後確認時若超過該30秒期限，請在 Bitget 取消，不要確認。</p>
 <p>點過一次錢包簽送請求後，即使拒絕、逾時或未知，也不會再請求。等待90秒或按停止只會記錄未知狀態，不代表取消；若稍後收到hash仍會保存供查詢。</p></section>
-<section><h2>3. 手動查詢交易狀態</h2><p>這裡只有唯讀查詢，不會重送交易。不要清除本站資料；它用來記錄本次請求。若曾送出卻沒有hash，nonce增加仍不能單獨證明領取成功。</p>
+<section><h2>4. 手動查詢交易狀態</h2><p>這裡只有唯讀查詢，不會重送交易。不要清除本站資料；它用來記錄本次請求。若曾送出卻沒有hash，nonce增加仍不能單獨證明領取成功。</p>
 <label for="tx-hash">交易 hash（僅在錢包有顯示時填入；不要貼原始已簽交易）</label><input id="tx-hash" autocomplete="off" spellcheck="false" placeholder="0x…（32-byte 交易 hash）">
 <button id="check" disabled>查一次收據與 nonce（唯讀）</button><pre id="journal">沒有本次請求紀錄。</pre>
 <p>成功須核對交易欄位、canonical區塊與至少3個確認，並確認金庫支付事件與 LGNS 實際轉入相符。單看 status=1 不算完整驗證。</p></section>
