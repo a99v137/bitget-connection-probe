@@ -5,6 +5,12 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (options) {
   'use strict';
   const { rpc, walletRead, ethers: E, policy: P, profile: F } = options;
+  function stage(name, details = {}) { try { options.onStage?.(name, details); } catch (_) { /* Diagnostics never authorize or interrupt a check. */ } }
+  function observedChain(kind, value) {
+    if ((typeof value === 'string' && /^(?:0x[0-9a-f]{1,13}|[0-9]{1,15})$/i.test(value)) || Number.isSafeInteger(value))
+      stage('CHAIN_ACCOUNT', { [kind]: BigInt(value).toString() });
+    return value;
+  }
   const fields = ['daiValue', 'capBps', 'burnedLgns', 'releasedDaiValue', 'claimedLgns', 'lastAccReleasedFrac', 'lastAccLgnsPerDai', 'depositTimestamp', 'mode'];
   const identityFields = ['daiValue', 'capBps', 'burnedLgns', 'depositTimestamp', 'mode'];
   const bond = new E.Interface([
@@ -34,6 +40,7 @@
   }
   async function collect(expectedWallet) {
     const startedWall = Date.now(), startedMono = performance.now(), wallet = address(expectedWallet);
+    stage('LOCAL_POLICY');
     need(P.chainId === '6714' && Number.isSafeInteger(P.quoteMaxAgeMs) && P.quoteMaxAgeMs > 0 && P.quoteMaxAgeMs <= 30000 &&
       Number.isSafeInteger(P.maxFutureSkewMs) && P.maxFutureSkewMs >= 0 && P.maxFutureSkewMs <= 2000, 'POLICY_CLOCK_INVALID');
     need(P.feeEvidence === 'scoped-pragmatic-fee-review-2026-11-11' &&
@@ -47,17 +54,21 @@
       E.sha256(F.helper_runtime) === '0x' + P.profileHelperSha256, 'PROFILE_CHANGED');
     need(Object.keys(F.runtime_sha256_pins).length === 16 && Object.keys(F.eip1967_slot_pins).length === 6, 'PIN_SET_INCOMPLETE');
     for (const name of ['bond', 'lgns', 'dai']) need(address(F.addresses[name]) === address(P[name]), 'PROFILE_ADDRESS_CHANGED');
-    const initial = await Promise.all([rpc('eth_chainId'), walletRead('eth_chainId'), walletRead('eth_accounts'), rpc('eth_getBlockByNumber', ['latest', false])]);
+    stage('CHAIN_ACCOUNT');
+    const initial = await Promise.all([rpc('eth_chainId').then(v => observedChain('rpcChainId', v)),
+      walletRead('eth_chainId').then(v => observedChain('walletChainId', v)), walletRead('eth_accounts'), rpc('eth_getBlockByNumber', ['latest', false])]);
     need(BigInt(initial[0]) === 6714n && BigInt(initial[1]) === 6714n, 'CHAIN_MISMATCH');
     need(initial[2]?.length && address(initial[2][0]) === wallet, 'ACCOUNT_MISMATCH');
     const source = initial[3]; need(source && /^0x[0-9a-f]{64}$/i.test(source.hash), 'SOURCE_MISSING');
     sourceCheck(source, source, source, startedWall, startedMono);
     const tag = source.number;
+    stage('SOURCE_PINS');
     await Promise.all([
       ...Object.entries(F.runtime_sha256_pins).map(async ([a, h]) => need(E.sha256(await rpc('eth_getCode', [a, tag])) === '0x' + h, 'RUNTIME_CHANGED')),
       ...Object.entries(F.eip1967_slot_pins).map(async ([a, h]) => need((await rpc('eth_getStorageAt', [a, F.eip1967_implementation_slot, tag])).toLowerCase() === h, 'IMPLEMENTATION_CHANGED'))
     ]);
     const control = '0x32a4586797e3f561f41c0f47ca57ed08d64f3dc0';
+    stage('ORDERS_AND_FEE_LEDGER');
     const reads = await Promise.all([
       call(P.bond, bond, 'getUserDeposits', [wallet], tag), rpc('eth_getCode', [wallet, tag]),
       rpc('eth_getTransactionCount', [wallet, tag]), rpc('eth_getTransactionCount', [wallet, 'latest']), rpc('eth_getTransactionCount', [wallet, 'pending']),
@@ -79,6 +90,7 @@
     need(new Set(identities).size === identities.length, 'AMBIGUOUS_ORDER_IDENTITY');
     const wanted = identities.map((s, i) => hashText(s) === P.expectedOrderIdentityCommitment ? i : -1).filter(i => i >= 0);
     need(wanted.length === 1 && wanted[0] === P.validatedOrderIndex, 'VALIDATED_ORDER_MOVED_OR_MISSING');
+    stage('REWARD_NET_MODEL');
     const claimables = await Promise.all(records.map((_, i) => call(P.bond, bond, 'getClaimable', [wallet, i], tag)));
     async function quote(index, minOut = 0n) {
       need(reads[11] >= claimables[index], 'MODEL_EXISTING_ALLOWANCE_INSUFFICIENT');
@@ -113,6 +125,7 @@
     const transaction = { from: wallet, to: P.bond, chainId: '0x1a3a', type: '0x0', nonce: hex(P.expectedNonce),
       value: '0x0', data: '0x379607f5' + best.index.toString(16).padStart(64, '0'), gas: hex(P.gasLimit), gasPrice: hex(P.maxGasPrice) };
     let actualClaimCallPassed = false, gasEstimate = null;
+    stage('LATEST_ELIGIBILITY');
     const post = await Promise.all([
       rpc('eth_getBlockByNumber', [tag, false]), rpc('eth_getBlockByNumber', ['latest', false]),
       walletRead('eth_chainId'), walletRead('eth_accounts'), rpc('eth_chainId'),
@@ -155,6 +168,7 @@
         if (gasEstimate > BigInt(P.gasLimit)) blockers.push('GAS_ESTIMATE_EXCEEDS_FIXED_LIMIT');
       } catch (_) { blockers.push('REAL_CLAIM_SIMULATION_FAILED'); }
     }
+    stage('FINAL_STATE');
     const final = await Promise.all([rpc('eth_getBlockByNumber', [currentTag, false]), rpc('eth_getBlockByNumber', ['latest', false]),
       walletRead('eth_chainId'), walletRead('eth_accounts'), rpc('eth_getTransactionCount', [wallet, 'latest']), rpc('eth_getTransactionCount', [wallet, 'pending']),
       rpc('eth_getBlockByNumber', [tag, false])]);

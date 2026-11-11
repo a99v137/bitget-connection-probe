@@ -4,10 +4,24 @@
   const $ = id => document.getElementById(id), E = window.ethers, P = window.ANUBIS_MANUAL_POLICY;
   const READ_RPC = new Set(['eth_chainId', 'eth_blockNumber', 'eth_getBlockByNumber', 'eth_getStorageAt', 'eth_getCode', 'eth_call',
     'eth_getTransactionCount', 'eth_getTransactionByHash', 'eth_getTransactionReceipt', 'eth_getBalance', 'eth_gasPrice', 'eth_estimateGas']);
-  let provider = null, controller = null, review = null, active = false, id = 0;
+  let provider = null, controller = null, review = null, active = false, id = 0, lastReadStage = '尚未查詢';
+  const observedNetworks = {};
   const requests = new Set();
   function say(text) { $('status').textContent = text; }
   function brief(text) { if ($('brief')) $('brief').textContent = text; }
+  function diagnostic() {
+    return '最後階段：' + lastReadStage + '；錢包 Chain ID：' + (observedNetworks.walletChainId || '未讀到') +
+      '；RPC Chain ID：' + (observedNetworks.rpcChainId || '未讀到') + '；需要 Anubis 6714。';
+  }
+  function errorExplanation(code) {
+    const messages = { CHAIN_MISMATCH: '目前錢包網路不是 Anubis 6714，請先在 Bitget 切換網路。',
+      ACCOUNT_MISMATCH: '目前連接的錢包地址與輸入地址不同。', CONNECTED_ACCOUNT_MISMATCH: '目前連接的錢包地址與輸入地址不同。',
+      CONNECTION_REJECTED: '錢包連線沒有獲得同意。', SOURCE_EXPIRED: '唯讀查詢超過30秒或來源已過期，未準備交易。',
+      SOURCE_FUTURE: '來源區塊時間與裝置時間不符。', CLOCK_CHANGED: '裝置時間在檢查途中變動。',
+      READ_QUERY_FAILED_OR_UNKNOWN: '唯讀 RPC 查詢未完成；可能是連線、逾時或伺服器拒絕，尚未確認原因。',
+      NONCE_CHANGED_OR_PENDING: 'nonce已變動或存在待處理交易，請先查明交易狀態。' };
+    return (messages[code] || '這一輪檢查未完成。') + ' ' + diagnostic();
+  }
   function errorCode(error) { if (typeof error?.code === 'string' && /^[A-Z0-9_]{1,80}$/.test(error.code)) return error.code; return typeof error?.message === 'string' && /^[A-Z0-9_]{1,80}$/.test(error.message) ? error.message : 'OPERATION_NOT_VERIFIED'; }
   function clearReview(text) { review = null; brief(''); $('review').textContent = text; $('send-consent').checked = false; $('send-consent').disabled = true; $('send').disabled = true; }
   function setActive(value) { active = value; const state = controller?.getState(); $('prepare').disabled = value || !!state?.stopped || !!state?.walletRequested; $('check').disabled = value || !state?.record; updateSend(); }
@@ -87,14 +101,22 @@
       return provider.request(args);
     } };
     const walletRead = async method => { if (!['eth_accounts', 'eth_chainId'].includes(method)) throw Error('WALLET_READ_REJECTED'); return bridge.request({ method, params: [] }); };
-    const preflight = window.createManualClaimPreflight({ rpc, walletRead, ethers: E, policy: P, profile: window.ANUBIS_QUOTE_PROFILE });
+    const preflight = window.createManualClaimPreflight({ rpc, walletRead, ethers: E, policy: P, profile: window.ANUBIS_QUOTE_PROFILE,
+      onStage(name, details = {}) {
+        const stages = { LOCAL_POLICY: '本次測試設定', CHAIN_ACCOUNT: '網路與錢包', SOURCE_PINS: '合約程式碼',
+          ORDERS_AND_FEE_LEDGER: '訂單與費用餘額', REWARD_NET_MODEL: '獎勵淨估價', LATEST_ELIGIBILITY: '最新額度與可領狀態', FINAL_STATE: '最後狀態核對' };
+        if (!Object.prototype.hasOwnProperty.call(stages, name)) return;
+        lastReadStage = stages[name];
+        for (const key of ['walletChainId', 'rpcChainId']) if (typeof details[key] === 'string' && /^[0-9]{1,16}$/.test(details[key])) observedNetworks[key] = details[key];
+        if (active) say('正在唯讀核對：' + diagnostic());
+      } });
     controller = window.createManualClaimController({ provider: bridge, preflight, rpc, ethers: E, policy: P, storage: localStorage, locks: navigator.locks, onState: render });
     return controller;
   }
   $('prepare').onclick = async () => {
     if (active) return; if (!$('read-consent').checked) { say('請先同意公開地址唯讀查詢。'); return; }
-    try { const engine = buildController(); setActive(true); await engine.prepare($('wallet').value.trim()); }
-    catch (error) { clearReview('無可批准核對卡。'); say('未能完成唯讀準備：' + errorCode(error) + '。'); }
+    try { const engine = buildController(); lastReadStage = '錢包連線'; delete observedNetworks.walletChainId; delete observedNetworks.rpcChainId; setActive(true); await engine.prepare($('wallet').value.trim()); }
+    catch (error) { clearReview('無可批准核對卡。'); const code = errorCode(error); say('未能完成唯讀準備：' + code + '。' + errorExplanation(code)); }
     finally { setActive(false); }
   };
   $('send-consent').onchange = updateSend;

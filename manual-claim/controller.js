@@ -11,6 +11,28 @@
   const KEY = 'anubis-manual-one-shot:v1:' + String(P.walletCommitment).toLowerCase();
   let busy = false, stopped = false, walletRequested = false, card = null, record = null, releaseUnknownWait = null;
   class ManualError extends Error { constructor(code) { super(code); this.name = 'ManualError'; this.code = code; } }
+  // Exact reviewed public diagnostic codes only. Never forward arbitrary provider/RPC messages or payloads.
+  const SAFE_PUBLIC_CODES = new Set([
+    'ACCOUNT_MISMATCH', 'AMBIGUOUS_ORDER_IDENTITY', 'BEST_ORDER_OUTSIDE_VALIDATED_SCOPE', 'CHAIN_MISMATCH', 'CLOCK_CHANGED',
+    'CONTRACT_RELATION_CHANGED', 'DECIMALS_CHANGED', 'EOA_ONLY', 'FEE_BALANCE_INSUFFICIENT', 'FEE_LEDGER_MAPPING_CHANGED',
+    'FEE_OVER_TEN_PERCENT', 'FINAL_NONCE_CHANGED', 'FINAL_WALLET_CHANGED', 'GAS_ESTIMATE_EXCEEDS_FIXED_LIMIT',
+    'GLOBAL_QUOTA_INSUFFICIENT', 'HEAD_REGRESSED', 'IMPLEMENTATION_CHANGED', 'INVALID_ADDRESS', 'INVALID_QUOTA',
+    'LATEST_CONTRACT_RELATION_CHANGED', 'LATEST_ELIGIBILITY_REORG', 'LATEST_FEE_LEDGER_CHANGED', 'LATEST_IMPLEMENTATION_CHANGED',
+    'LATEST_ORDER_OR_AMOUNT_CHANGED', 'LATEST_QUOTA_INVALID', 'LATEST_RUNTIME_CHANGED', 'MODEL_AMOUNT_INVALID',
+    'MODEL_EXISTING_ALLOWANCE_INSUFFICIENT', 'MODEL_NOT_DETERMINISTIC', 'MODEL_RESPONSE_INVALID', 'NONCE_CHANGED_OR_PENDING',
+    'OBSERVED_GAS_PRICE_ABOVE_FIXED_CAP', 'ORDER_COUNT_CHANGED', 'OTHER_FEE_SCOPE_UNVERIFIED', 'PERIOD_CHANGED_PREPARE_NEW_CARD',
+    'PIN_SET_INCOMPLETE', 'POLICY_CLOCK_INVALID', 'POST_CHAIN_OR_ACCOUNT_CHANGED', 'POST_NONCE_CHANGED', 'PROFILE_ADDRESS_CHANGED',
+    'PROFILE_CHANGED', 'QUOTA_CONFIGURATION_CHANGED', 'REAL_CLAIM_SIMULATION_FAILED', 'RUNTIME_CHANGED', 'SOURCE_EXPIRED',
+    'SOURCE_FUTURE', 'SOURCE_MISSING', 'SOURCE_REORG', 'TRIAL_REQUIRES_VERIFIED_QUOTA_PERIOD', 'VALIDATED_ORDER_MOVED_OR_MISSING',
+    'VALUATION_POLICY_CHANGED', 'WALLET_OUTSIDE_APPROVED_TRIAL', 'READ_QUERY_FAILED_OR_UNKNOWN', 'READ_ONLY_RPC_REJECTED',
+    'BITGET_PROVIDER_REQUIRED', 'SECURE_CONTEXT_AND_LOCKS_REQUIRED', 'WALLET_READ_REJECTED'
+  ]);
+  function safeErrorCode(error, fallback) {
+    if (error instanceof ManualError) return error.code;
+    if (error?.code === 4001 || error?.code === '4001') return 'CONNECTION_REJECTED';
+    for (const candidate of [error?.code, error?.message]) if (typeof candidate === 'string' && SAFE_PUBLIC_CODES.has(candidate)) return candidate;
+    return fallback;
+  }
   const must = (ok, code) => { if (!ok) throw new ManualError(code); };
   function uint(value) { must(typeof value === 'bigint' || (Number.isSafeInteger(value) && value >= 0) || (typeof value === 'string' && /^(?:0x[0-9a-f]+|[0-9]+)$/i.test(value)), 'INVALID_UINT'); const n = BigInt(value); must(n >= 0n, 'INVALID_UINT'); return n; }
   function address(value) { must(typeof value === 'string' && /^0x[0-9a-f]{40}$/i.test(value), 'INVALID_ADDRESS'); return value.toLowerCase(); }
@@ -135,7 +157,7 @@
         card = makeCard(snapshot, wallet); emit('prepared', { card: jsonCopy(card), executionEnabled: P.executionEnabled === true });
         return { eligible: true, card: jsonCopy(card) };
       });
-    } catch (error) { card = null; emit('error', { code: error instanceof ManualError ? error.code : 'PREPARATION_FAILED' }); throw new ManualError(error instanceof ManualError ? error.code : 'PREPARATION_FAILED'); }
+    } catch (error) { card = null; const code = safeErrorCode(error, 'PREPARATION_FAILED'); emit('error', { code }); throw new ManualError(code); }
     finally { busy = false; }
   }
   async function sendApproved({ acknowledged, reviewDigest }) {
@@ -155,7 +177,7 @@
         walletRequested = true; card = null; emit('wallet_requested_unknown', { record: jsonCopy(record) });
         return requestWalletOnce(approved);
       });
-    } catch (error) { if (!walletRequested) card = null; emit('error', { code: error instanceof ManualError ? error.code : 'FINAL_PREFLIGHT_FAILED' }); throw new ManualError(error instanceof ManualError ? error.code : 'FINAL_PREFLIGHT_FAILED'); }
+    } catch (error) { if (!walletRequested) card = null; const code = safeErrorCode(error, 'FINAL_PREFLIGHT_FAILED'); emit('error', { code }); throw new ManualError(code); }
     finally { busy = false; }
   }
   function matchesReturnedTx(tx, expected, expectedHash) {

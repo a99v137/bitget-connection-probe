@@ -2,11 +2,11 @@
 <html lang="zh-Hant"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://rpc.anubispace.org; img-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Anubis 單次手動領取試驗</title><link rel="stylesheet" href="manual.css">
+<title>Anubis 單次手動領取試驗 v0.1.1</title><link rel="stylesheet" href="manual.css">
 <script defer src="vendor/ethers-6.15.0.umd.min.js"></script><script defer src="config.js"></script><script defer src="quote-profile.js"></script>
-<script defer src="manual-preflight.js"></script><script defer src="controller.js"></script><script defer src="manual.js"></script>
+<script defer src="manual-preflight.js?v=0.1.1"></script><script defer src="controller.js?v=0.1.1"></script><script defer src="manual.js?v=0.1.1"></script>
 </head><body><main>
-<header><p class="badge">v0.1 · 單次手動試驗 · 僅限 Bitget Wallet</p><h1>簽署並送出一筆 LGNS 領取</h1>
+<header><p class="badge">v0.1.1 · 單次手動試驗 · 僅限 Bitget Wallet</p><h1>簽署並送出一筆 LGNS 領取</h1>
 <p>這是獨立的一次手動交易試驗，不是預簽保存或自動後端。手機與頁面需保持開啟；沒有整點觸發、背景排程或自動重試。</p></header>
 <section class="warning"><h2>開始前</h2><p>只有核對卡、當前額度與最高費用不超過可靠淨估值10%的檢查都通過，才可請求錢包。領取函式為一般債券的單筆 claim，不買幣、不存入、不授權、不自動出售。</p>
 <p>按下「請 Bitget 簽署並送出一次」後，錢包可能簽署並立即廣播。失敗交易也可能耗 Gas；停止本頁不能撤回錢包請求或已送交易。若 Bitget 出現釣魚／安全警示，請保留警示並停止，不要繞過。</p>
