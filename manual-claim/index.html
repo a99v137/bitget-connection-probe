@@ -1,14 +1,15 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Anubis iPad 雲端預簽待命 v0.5</title><link rel="stylesheet" href="presign-status.css?v=0.4"></head><body><main>
-<p class="badge">v0.5 · iPad 雲端流程 · 部署尚未完成</p><h1>在 iPad 預簽，由雲端到點送出一次</h1>
-<section><h2>目前狀態</h2><p>iPad雲端版程式已通過133項隔離測試與本機部署映像驗證。Railway帳戶已連接，常駐服務與持久儲存已建立。上傳工具還需一次獨立登入；程式尚未部署成功，沒有可操作入口或正在執行的待命任務，也尚未取得這筆Anubis預簽或成功領取紀錄。</p>
+<title>Anubis iPad 雲端乾跑 v0.6</title><link rel="stylesheet" href="presign-status.css?v=0.4"></head><body><main>
+<p class="badge">v0.6 · 雲端乾跑已上線 · 尚無金融簽送</p><h1>先在 iPad 驗證登入與背景演練</h1>
+<section><h2>目前狀態</h2><p>Railway雲端乾跑已成功部署，HTTPS健康檢查及頁面回讀通過。程式已有133項隔離測試與本機Docker驗證；現在是DRY RUN，禁止金融交易預簽與廣播，沒有已ARM任務。真實iPad Bitget登入、15秒關頁演練與Anubis只簽能力仍待實機驗證，也尚未取得這筆成功領取紀錄。</p>
 <p>舊手動簽送頁已停用。本頁僅顯示說明，不連接錢包、不保管簽名，也不執行排程。</p></section>
-<section><h2>本次執行規則</h2><ul><li>先核對交易、預簽並啟動待命；到點不再詢問，送出同一筆已簽交易一次。</li><li>目前額度不足可先準備下一時段；觸發依目標整點與提前完成的檢查，不等待第一個重置區塊出現。</li><li>本次已取消費用／淨估值10%與固定費用預算。每筆簽名仍有具體Gas limit、單價及最高可能費用，可能接近用盡Gas餘額。</li><li>結果未知不重送，不自動改價或替換交易。程序重啟解除待命；已廣播的交易與已花費用不能靠停止按鈕撤回。</li></ul></section>
-<section><h2>全部由 iPad 操作</h2><p>部署完成後，在iPad的Bitget內建瀏覽器開啟正式HTTPS網址即可，不需另一支Android手機或本地電腦。持續運行的雲端主機負責待命，關閉iPad頁面不會取消已啟動的任務。</p>
-<p>先簽署清楚可讀的錢包登入訊息，驗證身分；登入不花Gas、不啟動領取。乾跑模式可先做15秒不簽交易的背景演練，關頁後再回來查結果。真正交易預簽及實際簽回費用核對，仍是分開的明確操作。</p>
-<p>目前這個網址只顯示進度。請完成對話中上傳工具的一次登入連結；助理部署並驗證成功後，才會提供真正可用的操作網址。</p>
+<section><h2>正式流程的執行規則</h2><ul><li>正式live前仍須完成實機核對；核對交易、一次預簽與實際最高費後明確ARM，到點才自動送同一筆一次，不再詢問。目前乾跑不提供金融簽送。</li><li>目前額度不足可先唯讀準備下一時段；不表示到點額度或首區塊成功已獲保證。</li><li>本次已取消費用／淨估值10%與固定費用預算。每筆簽名仍有具體Gas limit、單價及最高可能費用，可能接近用盡Gas餘額。</li><li>結果未知不重送，不自動改價或替換交易。程序重啟解除待命；已廣播的交易與已花費用不能靠停止按鈕撤回。</li></ul></section>
+<section><h2>下一步：全部由 iPad 操作</h2><p><a href="https://ipad-worker-production.up.railway.app/">開啟 iPad 雲端乾跑入口</a></p>
+<p>請在iPad的Bitget Wallet內建瀏覽器開啟上方HTTPS網址，確認A013錢包與Anubis網路。公開網址不加內部服務port8080，不需終端指令或其他設備。</p>
+<p>先閱讀清楚可讀的登入訊息，再以personal_sign驗證身分；這不是交易、不花Gas、不啟動領取或ARM。接著啟動15秒無交易背景演練，關頁後重新開啟同網址並登入讀回結果。實際登入／演練尚待這次驗證；真正交易預簽及實簽費用核對是之後分開的明確操作。</p>
+<p>本頁仍只是進度說明，不連錢包；實際操作請使用上方雲端入口。關頁與登出不等於STOP，程序重啟則解除待命不自動續單。</p>
 <p><a href="https://github.com/a99v137/anubis-lgns-agent-v2/blob/main/presign/README.md">私人程式與完整操作說明</a></p>
 <p><a href="https://github.com/a99v137/anubis-lgns-agent-v2/blob/main/evidence/quota-first-block/latest-six-periods.md">最近六個整點的鏈上額度證據</a></p></section>
 <p class="note">第一區塊是目標，無法保證排序、額度或成功。Bitget在Anubis只簽不廣播的能力仍待實機驗證。</p>
