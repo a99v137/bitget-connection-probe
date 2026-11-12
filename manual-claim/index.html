@@ -1,13 +1,14 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Anubis 預簽待命試驗 v0.3</title><link rel="stylesheet" href="presign-status.css?v=0.3"></head><body><main>
-<p class="badge">v0.3 · 預簽待命流程 · 狀態與操作入口</p><h1>先預簽，到目標時段自動送出一次</h1>
-<section><h2>目前狀態</h2><p>新的可攜執行器已提供本機測試版本。尚未在你的主機上啟動，也尚未取得這筆 Anubis 預簽、待命或成功領取紀錄。</p>
+<title>Anubis iPad 雲端預簽待命 v0.4</title><link rel="stylesheet" href="presign-status.css?v=0.4"></head><body><main>
+<p class="badge">v0.4 · iPad 雲端流程 · 部署尚未完成</p><h1>在 iPad 預簽，由雲端到點送出一次</h1>
+<section><h2>目前狀態</h2><p>iPad雲端版程式已通過133項隔離測試與本機部署映像驗證。Railway雲端帳戶尚未啟用及連接，因此沒有正式操作網址或正在執行的待命任務，也尚未取得這筆Anubis預簽、待命或成功領取紀錄。</p>
 <p>舊手動簽送頁已停用。本頁僅顯示說明，不連接錢包、不保管簽名，也不執行排程。</p></section>
 <section><h2>本次執行規則</h2><ul><li>先核對交易、預簽並啟動待命；到點不再詢問，送出同一筆已簽交易一次。</li><li>目前額度不足可先準備下一時段；觸發依目標整點與提前完成的檢查，不等待第一個重置區塊出現。</li><li>本次已取消費用／淨估值10%與固定費用預算。每筆簽名仍有具體Gas limit、單價及最高可能費用，可能接近用盡Gas餘額。</li><li>結果未知不重送，不自動改價或替換交易。程序重啟解除待命；已廣播的交易與已花費用不能靠停止按鈕撤回。</li></ul></section>
-<section><h2>啟動位置</h2><p>需要一台持續運行的Android（Termux）、電腦或伺服器。執行器預設只接受同一台主機的連線；iPad本身不能運行Termux，目前也尚未設定供iPad連入的遠端主機。</p>
-<p>預設模式只有唯讀準備，不會要求真錢包預簽。正式模式的專用網址由執行主機產生，含有存取憑證，請勿公開或貼到聊天。</p>
+<section><h2>全部由 iPad 操作</h2><p>部署完成後，在iPad的Bitget內建瀏覽器開啟正式HTTPS網址即可，不需另一支Android手機或本地電腦。持續運行的雲端主機負責待命，關閉iPad頁面不會取消已啟動的任務。</p>
+<p>先簽署清楚可讀的錢包登入訊息，驗證身分；登入不花Gas、不啟動領取。乾跑模式可先做15秒不簽交易的背景演練，關頁後再回來查結果。真正交易預簽及實際簽回費用核對，仍是分開的明確操作。</p>
+<p>目前這個網址只顯示進度。請先在ChatGPT應用程式中啟用Railway並連接帳戶，部署完成後才能提供真正的操作網址。</p>
 <p><a href="https://github.com/a99v137/anubis-lgns-agent-v2/blob/main/presign/README.md">私人程式與完整操作說明</a></p>
 <p><a href="https://github.com/a99v137/anubis-lgns-agent-v2/blob/main/evidence/quota-first-block/latest-six-periods.md">最近六個整點的鏈上額度證據</a></p></section>
 <p class="note">第一區塊是目標，無法保證排序、額度或成功。Bitget在Anubis只簽不廣播的能力仍待實機驗證。</p>
