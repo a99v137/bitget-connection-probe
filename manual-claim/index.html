@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
-<title>Anubis iPad 安全核查暫停 v0.7</title><link rel="stylesheet" href="presign-status.css?v=0.4"></head><body><main>
-<p class="badge">v0.7 · Bitget 釣魚警示 · 暫停登入與簽名</p><h1>請先安全返回，等待官方核查</h1>
-<section><h2>目前阻擋</h2><p>使用者的Bitget Wallet對Railway網域顯示釣魚風險警示。目前不能認定誤報。請安全返回，暫停登入、訊息或交易簽名、背景演練與ARM，先由Bitget官方安全核查。</p><p>受警示網域：<code>ipad-worker-production.up.railway.app</code>。本頁不提供登入連結，不要求重試繞過、更換網域或停用錢包保護。單次第三方查詢未標記，不能當作Bitget內部風險已解除或安全認證。</p></section>
+<title>Anubis iPad 補件審查暫停 v0.8</title><link rel="stylesheet" href="presign-status.css?v=0.4"></head><body><main>
+<p class="badge">v0.8 · Bitget 等候補件審查 · 暫停登入與簽名</p><h1>官方仍評高風險，先補充資料複核</h1>
+<section data-review-state="PENDING_BITGET_SECURITY_REVIEW_ADDITIONAL_INFORMATION"><h2>目前審查狀態</h2><p>使用者曾回報警示解除、網站可正常開啟；後續官方支援回覆仍將網站評為HIGH_RISK，要求補充資料以申請白名單或重新審查。案件關閉不代表安全審查已通過，網站能開啟也不是官方核准。</p><p>目前暫停登入、訊息或交易簽名、背景演練與ARM。網域僅作審查資料：<code>ipad-worker-production.up.railway.app</code>。本頁沒有登入連結，不要求重試繞過、更換網域或停用錢包保護；第三方查詢未標記不能代替Bitget判定。</p></section>
 <section><h2>目前狀態</h2><p>Railway雲端乾跑已成功部署，HTTPS健康檢查及頁面回讀通過。程式已有133項隔離測試與本機Docker驗證；現在是DRY RUN，禁止金融交易預簽與廣播，沒有已ARM任務。真實iPad Bitget登入、15秒關頁演練與Anubis只簽能力仍待實機驗證，也尚未取得這筆成功領取紀錄。</p>
 <p>舊手動簽送頁已停用。本頁僅顯示說明，不連接錢包、不保管簽名，也不執行排程。</p></section>
 <section><h2>正式流程的執行規則</h2><ul><li>正式live前仍須完成實機核對；核對交易、一次預簽與實際最高費後明確ARM，到點才自動送同一筆一次，不再詢問。目前乾跑不提供金融簽送。</li><li>目前額度不足可先唯讀準備下一時段；不表示到點額度或首區塊成功已獲保證。</li><li>本次已取消費用／淨估值10%與固定費用預算。每筆簽名仍有具體Gas limit、單價及最高可能費用，可能接近用盡Gas餘額。</li><li>結果未知不重送，不自動改價或替換交易。程序重啟解除待命；已廣播的交易與已花費用不能靠停止按鈕撤回。</li></ul></section>
-<section><h2>下一步：官方安全核查</h2><p>保留警示畫面與受警示網域，使用已核實的Bitget官方安全管道處理；正式管道正在確認。不要為了測試而繼續登入或簽名。</p>
+<section><h2>下一步：準備官方要求的補充資料</h2><p>整理專案說明、網站與用途、商業模式、團隊、合約及社群連結，回覆官方以供白名單或重新審查。沒有核准結果前，不為測試而繼續登入或簽名。</p>
 <p>Railway部署SUCCESS與dry-run仍成立，但真實iPad owner登入及15秒關頁演練未驗證，沒有已ARM任務、金融預簽或主網廣播。未來即使恢復測試，登入personal_sign也只是身分驗證，不是交易或ARM；目前同樣暫停。</p>
 <p>本頁只顯示進度，不連錢包、不保管簽名、不執行排程。關頁與登出不等於STOP；程序重啟會解除待命、不自動續單。</p>
-<p><a href="https://github.com/a99v137/anubis-lgns-agent-v2/blob/main/presign/README.md">私人程式與完整操作說明</a></p>
-<p><a href="https://github.com/a99v137/anubis-lgns-agent-v2/blob/main/evidence/quota-first-block/latest-six-periods.md">最近六個整點的鏈上額度證據</a></p></section>
+
+</section>
 <p class="note">第一區塊是目標，無法保證排序、額度或成功。Bitget在Anubis只簽不廣播的能力仍待實機驗證。</p>
 </main></body></html>
